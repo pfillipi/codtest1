@@ -1,0 +1,106 @@
+import cx from 'classnames';
+import { Component } from 'react';
+
+export default class TodoList extends Component {
+    constructor (props) {
+        super(props);
+        this.state = {
+            todoText: '',
+            todos: []
+        }
+        
+        this.addTodo = this.addTodo.bind(this);
+        this.handleChange = this.handleChange.bind(this);
+        this.toggleCompletion = this.toggleCompletion.bind(this);
+        this.renderTodos = this.renderTodos.bind(this);
+        this.getRemainingTaskCount = this.getRemainingTaskCount.bind(this);
+    }
+    
+    addTodo () {
+        const isEmpty = !Boolean(this.state.todoText.trim());
+        
+        if (isEmpty) {
+            return;
+        }
+        
+        this.setState((state) => ({
+            todoText: '',
+            todos: [...state.todos, {
+                id: state.todos.length,
+                text: state.todoText,
+                done: false
+            }]
+        }))
+    }
+    
+    handleChange (event) {
+        this.setState({
+            todoText: event.target.value
+        });
+    }
+    
+    toggleCompletion (id) {
+        const todos = this.state.todos.map(todo => {
+            if (todo.id === id) {
+                todo.done = !todo.done;
+            }
+            return todo;
+        });
+        
+        this.setState({
+            todos
+        });
+        
+    }
+    
+    renderTodos (todos) {
+        return todos.map((todo, i) => {
+            const todoClass = cx({
+                'is-done': todo.done
+            });
+            
+           return <li key={todo.id} className={todoClass} onClick={() => this.toggleCompletion(todo.id)}>{todo.text}</li>
+        });
+    }
+    
+    getRemainingTaskCount (todos) {
+        return todos.reduce((count, todo) => {
+            if (!todo.done) {
+                count = count + 1;
+            }
+            
+            return count;
+        }, 0);
+    }
+    
+    render() {
+        
+        const taskCount = this.state.todos.length;
+        const remainingTaskCount = this.getRemainingTaskCount(this.state.todos);
+        
+        return (
+            <>
+                <div>
+                    <h2>
+                        Todo List
+                    </h2>
+                    
+                    <input type="text" value={this.state.todoText} onChange={this.handleChange}/>
+                    
+                    <button onClick={this.addTodo}>Add</button>
+                    
+                    <p className="task-counter">{remainingTaskCount} remaining out of {taskCount} tasks</p>
+                    
+                    <ul>
+                       {this.renderTodos(this.state.todos)}
+                    </ul>
+                </div>
+                <style>{`
+                    .is-done {
+                        text-decoration: line-through;
+                    }
+                `}</style>
+            </>
+        );
+    }
+}
